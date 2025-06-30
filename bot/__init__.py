@@ -62,6 +62,16 @@ class Var:
     START_PHOTO = getenv("START_PHOTO", "https://te.legra.ph/file/120de4dbad87fb20ab862.jpg")
     START_MSG = getenv("START_MSG", "<b>Hey {first_name}</b>,\n\n    <i>I am Auto Animes Store & Automater Encoder Build with ❤️ !!</i>")
     START_BUTTONS = getenv("START_BUTTONS", "UPDATES|https://telegram.me/Matiz_Tech SUPPORT|https://t.me/+p78fp4UzfNwzYzQ5")
+    
+    # Celebration Stickers Configuration
+    CELEBRATION_STICKERS = [
+        "CAACAgUAAxkBAAEOyQtoXB1SxAZqiP0wK7NbBBxxHwUG7gAC4BMAAp6PIFcLAAGEEdQGq4s2BA",
+        "CAACAgIAAxkBAAEOyQxoXB1iQwABuPZk8x4-vQx2H0Rq2gAC3RQAAhYeaEgvAAEWm9oG7ks2BA",
+        "CAACAgIAAxkBAAEOyQ5oXB1pAAGL_3YwIXhF2kRxHwVB7gAC2hQAAkZeaEhLAAFEEdYGr4s2BA",
+        "CAACAgUAAxkBAAEOyRBoXB1vxAZriP8wK7RbBBxxHwUH7gAC5BMAAq6PIFdLAAGFEdYGsIs2BA",
+        "CAACAgIAAxkBAAEOyRJoXB11QwABvPZl8y4-vQx3H0Rs2gAC4RQAAiYeaEkvAAEXm9sG8Es2BA"
+    ]
+    SEND_CELEBRATION_STICKER = getenv("SEND_CELEBRATION_STICKER", "True").lower() == "true"
 
 if Var.THUMB and not ospath.exists("thumb.jpg"):
     system(f"wget -q {Var.THUMB} -O thumb.jpg")
