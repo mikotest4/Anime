@@ -15,7 +15,7 @@ CAPTION_FORMAT = """
 <b>────────────────────────────</b>
 <b>➤ Season - {season}</b>
 <b>➤ Episode - {ep_no}</b> 
-<b>➤ Quality: Multi [Sub]</b>
+<b>➤ Quality: Multi [{quality_type}]</b>
 <b>────────────────────────────</b>
 """
 
@@ -216,8 +216,15 @@ class TextEditor:
         if isinstance(episode_number, (int, str)):
             episode_number = str(episode_number).zfill(2)
         
+        # Determine audio type based on filename
+        audio_type = "Sub"  # Default
+        name_lower = self.__name.lower()
+        if any(keyword in name_lower for keyword in ['dual', 'multi', 'multi-audio', 'dual-audio']):
+            audio_type = "Dual"
+        
         return CAPTION_FORMAT.format(
             title=titles.get('english') or titles.get('romaji') or titles.get('native') or "Unknown Anime",
             season=season_number,
-            ep_no=episode_number
+            ep_no=episode_number,
+            quality_type=audio_type
         )
