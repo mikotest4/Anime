@@ -1,3 +1,4 @@
+import urllib.parse
 from asyncio import sleep as asleep, gather
 from pyrogram.filters import command, private, user
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -74,6 +75,33 @@ async def start_msg(client, message):
             await editMessage(temp, "<b>File Not Found !</b>")
     else:
         await editMessage(temp, "<b>Input Link is Invalid for Usage !</b>")
+
+@bot.on_message(command('help') & private & user(Var.ADMINS))
+@new_task
+async def help_cmd(client, message):
+    help_text = """<b>🤖 Admin Commands:</b>
+
+<b>📋 General:</b>
+• <code>/start</code> - Start the bot
+• <code>/help</code> - Show this help message
+• <code>/log</code> - Get bot log file
+
+<b>🎛️ Control:</b>
+• <code>/pause</code> - Pause anime fetching
+• <code>/resume</code> - Resume anime fetching
+• <code>/restart</code> - Restart the bot
+
+<b>➕ Add Tasks:</b>
+• <code>/addlink &lt;rss_url&gt;</code> - Add RSS feed link
+• <code>/addtask &lt;rss_url&gt; [index]</code> - Add specific RSS task
+• <code>/addmagnet &lt;magnet_link&gt;</code> - Add magnet link task
+
+<b>💡 Examples:</b>
+<code>/addmagnet magnet:?xt=urn:btih:abc123...</code>
+<code>/addtask https://example.com/rss.xml</code>
+<code>/addlink https://example.com/feed.xml</code>"""
+    
+    await sendMessage(message, help_text)
     
 @bot.on_message(command('pause') & private & user(Var.ADMINS))
 async def pause_fetch(client, message):
@@ -111,3 +139,37 @@ async def add_task(client, message):
     
     ani_task = bot_loop.create_task(get_animes(taskInfo.title, taskInfo.link, True))
     await sendMessage(message, f"<i><b>Task Added Successfully!</b></i>\n\n    • <b>Task Name :</b> {taskInfo.title}\n    • <b>Task Link :</b> {args[1]}")
+
+@bot.on_message(command('addmagnet') & private & user(Var.ADMINS))
+@new_task
+async def add_magnet_task(client, message):
+    if len(args := message.text.split(maxsplit=1)) <= 1:
+        return await sendMessage(message, "<b>No Magnet Link Found to Add</b>\n\n<i>Usage:</i> <code>/addmagnet magnet:?xt=urn:btih:...</code>")
+    
+    magnet_link = args[1].strip()
+    
+    # Validate magnet link
+    if not magnet_link.startswith("magnet:?xt=urn:btih:"):
+        return await sendMessage(message, "<b>Invalid Magnet Link!</b>\n\n<i>Please provide a valid magnet link starting with 'magnet:?xt=urn:btih:'</i>")
+    
+    try:
+        # Extract anime name from magnet link
+        parsed = urllib.parse.parse_qs(urllib.parse.urlparse(magnet_link).query)
+        anime_name = parsed.get('dn', ['Unknown Anime'])[0]
+        anime_name = urllib.parse.unquote(anime_name)
+        
+        # Send confirmation message
+        confirmation_msg = f"✅ <b>**Magnet Task Added!**</b>\n\n"
+        confirmation_msg += f"🔸 <b>**Name:**</b> `{anime_name}`\n\n"
+        confirmation_msg += f"🧲 <b>**Magnet:**</b> `{magnet_link[:50]}...`"
+        
+        await sendMessage(message, confirmation_msg)
+        
+        # Add the magnet task to processing queue
+        ani_task = bot_loop.create_task(get_animes(anime_name, magnet_link, True))
+        
+        await rep.report(f"Manual Magnet Task Added: {anime_name}", "info")
+        
+    except Exception as e:
+        await rep.report(f"Error adding magnet task: {str(e)}", "error")
+        await sendMessage(message, f"<b>Error processing magnet link!</b>\n\n<i>Error: {str(e)}</i>")
