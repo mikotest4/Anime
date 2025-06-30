@@ -6,6 +6,7 @@ from aiofiles.os import remove as aioremove
 from traceback import format_exc
 from base64 import urlsafe_b64encode
 from time import time
+from random import choice
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from bot import bot, bot_loop, Var, ani_cache, ffQueue, ffLock, ff_queued
@@ -32,6 +33,16 @@ async def fetch_animes():
             for link in Var.RSS_ITEMS:
                 if (info := await getfeed(link, 0)):
                     bot_loop.create_task(get_animes(info.title, info.link))
+
+async def send_celebration_sticker(channel_id):
+    """Send a random celebration sticker to the channel"""
+    if Var.SEND_CELEBRATION_STICKER and Var.CELEBRATION_STICKERS:
+        try:
+            sticker_id = choice(Var.CELEBRATION_STICKERS)
+            await bot.send_sticker(chat_id=channel_id, sticker=sticker_id)
+            await rep.report("Celebration sticker sent!", "info")
+        except Exception as e:
+            await rep.report(f"Failed to send celebration sticker: {str(e)}", "error")
 
 async def get_animes(name, torrent, force=False):
     try:
@@ -121,6 +132,9 @@ async def get_animes(name, torrent, force=False):
                 await db.saveAnime(ani_id, ep_no, qual, post_id)
                 bot_loop.create_task(extra_utils(msg_id, out_path))
             ffLock.release()
+            
+            # Send celebration sticker after all qualities are processed and uploaded
+            await send_celebration_sticker(Var.MAIN_CHANNEL)
             
             await stat_msg.delete()
             await aioremove(dl)
