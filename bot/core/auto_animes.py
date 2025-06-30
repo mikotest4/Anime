@@ -36,13 +36,15 @@ async def fetch_animes():
 
 async def send_celebration_sticker(channel_id):
     """Send a random celebration sticker to the channel"""
-    if Var.SEND_CELEBRATION_STICKER and Var.CELEBRATION_STICKERS:
-        try:
-            sticker_id = choice(Var.CELEBRATION_STICKERS)
-            await bot.send_sticker(chat_id=channel_id, sticker=sticker_id)
-            await rep.report("Celebration sticker sent!", "info")
-        except Exception as e:
-            await rep.report(f"Failed to send celebration sticker: {str(e)}", "error")
+    if not Var.SEND_CELEBRATION_STICKER or not Var.CELEBRATION_STICKERS:
+        return
+    
+    try:
+        sticker_id = choice(Var.CELEBRATION_STICKERS)
+        await bot.send_sticker(chat_id=channel_id, sticker=sticker_id)
+        await rep.report("🎉 Celebration sticker sent!", "info")
+    except Exception as e:
+        await rep.report(f"Failed to send celebration sticker: {str(e)}", "warning")
 
 async def get_animes(name, torrent, force=False):
     try:
