@@ -52,7 +52,10 @@ async def get_animes(name, torrent, force=False):
                 await rep.report(f"Torrent Skipped!\n\n{name}", "warning")
                 return
             
-            await rep.report(f"New Anime Torrent Found!\n\n{name}", "info")
+            # Check if it's a magnet link or torrent file
+            source_type = "Magnet Link" if torrent.startswith("magnet:") else "Torrent File"
+            await rep.report(f"New Anime {source_type} Found!\n\n{name}", "info")
+            
             post_msg = await bot.send_photo(
                 Var.MAIN_CHANNEL,
                 photo=await aniInfo.get_poster(),
@@ -61,7 +64,7 @@ async def get_animes(name, torrent, force=False):
             #post_msg = await sendMessage(Var.MAIN_CHANNEL, (await aniInfo.get_caption()).format(await aniInfo.get_poster()), invert_media=True)
             
             await asleep(1.5)
-            stat_msg = await sendMessage(Var.MAIN_CHANNEL, f"‣ <b>Anime Name :</b> <b><i>{name}</i></b>\n\n<i>Downloading...</i>")
+            stat_msg = await sendMessage(Var.MAIN_CHANNEL, f"‣ <b>Anime Name :</b> <b><i>{name}</i></b>\n\n<i>Downloading from {source_type}...</i>")
             dl = await TorDownloader("./downloads").download(torrent, name)
             if not dl or not ospath.exists(dl):
                 await rep.report(f"File Download Incomplete, Try Again", "error")
