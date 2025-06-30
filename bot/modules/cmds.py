@@ -96,10 +96,15 @@ async def help_cmd(client, message):
 • <code>/addtask &lt;rss_url&gt; [index]</code> - Add specific RSS task
 • <code>/addmagnet &lt;magnet_link&gt;</code> - Add magnet link task
 
+<b>🎉 Sticker Management:</b>
+• <code>/togglesticker</code> - Enable/disable celebration stickers
+• <code>/addsticker &lt;sticker_id&gt;</code> - Add new celebration sticker
+• <code>/liststickers</code> - List all celebration stickers
+
 <b>💡 Examples:</b>
 <code>/addmagnet magnet:?xt=urn:btih:abc123...</code>
-<code>/addtask https://example.com/rss.xml</code>
-<code>/addlink https://example.com/feed.xml</code>"""
+<code>/addsticker CAACAgUAAxkBAAEOyQtoXB1S...</code>
+<code>/togglesticker</code>"""
     
     await sendMessage(message, help_text)
     
@@ -173,3 +178,45 @@ async def add_magnet_task(client, message):
     except Exception as e:
         await rep.report(f"Error adding magnet task: {str(e)}", "error")
         await sendMessage(message, f"<b>Error processing magnet link!</b>\n\n<i>Error: {str(e)}</i>")
+
+@bot.on_message(command('togglesticker') & private & user(Var.ADMINS))
+@new_task
+async def toggle_sticker(client, message):
+    Var.SEND_CELEBRATION_STICKER = not Var.SEND_CELEBRATION_STICKER
+    status = "✅ Enabled" if Var.SEND_CELEBRATION_STICKER else "❌ Disabled"
+    await sendMessage(message, f"<b>Celebration Stickers:</b> {status}")
+
+@bot.on_message(command('addsticker') & private & user(Var.ADMINS))
+@new_task
+async def add_sticker(client, message):
+    if len(args := message.text.split()) <= 1:
+        return await sendMessage(message, "<b>No Sticker ID Found</b>\n\n<i>Usage:</i> <code>/addsticker &lt;sticker_file_id&gt;</code>")
+    
+    sticker_id = args[1].strip()
+    
+    try:
+        # Test if sticker exists by trying to send it
+        test_msg = await bot.send_sticker(chat_id=message.chat.id, sticker=sticker_id)
+        await test_msg.delete()
+        
+        # Add to sticker list
+        Var.CELEBRATION_STICKERS.append(sticker_id)
+        await sendMessage(message, f"✅ <b>Sticker Added Successfully!</b>\n\n<b>Total Stickers:</b> {len(Var.CELEBRATION_STICKERS)}")
+        
+    except Exception as e:
+        await sendMessage(message, f"❌ <b>Invalid Sticker ID!</b>\n\n<i>Error: {str(e)}</i>")
+
+@bot.on_message(command('liststickers') & private & user(Var.ADMINS))
+@new_task
+async def list_stickers(client, message):
+    if not Var.CELEBRATION_STICKERS:
+        return await sendMessage(message, "<b>No celebration stickers configured.</b>")
+    
+    sticker_text = f"<b>🎉 Celebration Stickers ({len(Var.CELEBRATION_STICKERS)}):</b>\n\n"
+    for i, sticker_id in enumerate(Var.CELEBRATION_STICKERS, 1):
+        sticker_text += f"{i}. <code>{sticker_id}</code>\n"
+    
+    status = "✅ Enabled" if Var.SEND_CELEBRATION_STICKER else "❌ Disabled"
+    sticker_text += f"\n<b>Status:</b> {status}"
+    
+    await sendMessage(message, sticker_text)
