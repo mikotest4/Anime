@@ -100,6 +100,7 @@ async def help_cmd(client, message):
 • <code>/togglesticker</code> - Enable/disable celebration stickers
 • <code>/addsticker &lt;sticker_id&gt;</code> - Add new celebration sticker
 • <code>/liststickers</code> - List all celebration stickers
+• <code>/teststicker</code> - Test a random celebration sticker
 
 <b>💡 Examples:</b>
 <code>/addmagnet magnet:?xt=urn:btih:abc123...</code>
@@ -220,3 +221,21 @@ async def list_stickers(client, message):
     sticker_text += f"\n<b>Status:</b> {status}"
     
     await sendMessage(message, sticker_text)
+
+@bot.on_message(command('teststicker') & private & user(Var.ADMINS))
+@new_task
+async def test_sticker(client, message):
+    from random import choice
+    if not Var.CELEBRATION_STICKERS:
+        return await sendMessage(message, "<b>No celebration stickers configured.</b>")
+    
+    try:
+        sticker_id = choice(Var.CELEBRATION_STICKERS)
+        await bot.send_sticker(chat_id=message.chat.id, sticker=sticker_id)
+        await sendMessage(message, f"✅ <b>Test sticker sent successfully!</b>\n\n<code>{sticker_id}</code>")
+    except Exception as e:
+        await sendMessage(message, f"❌ <b>Failed to send test sticker!</b>\n\n<i>Error: {str(e)}</i>")
+        # Remove invalid sticker
+        if sticker_id in Var.CELEBRATION_STICKERS:
+            Var.CELEBRATION_STICKERS.remove(sticker_id)
+            await sendMessage(message, f"🗑️ <b>Removed invalid sticker from list</b>")
