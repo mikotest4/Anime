@@ -19,7 +19,7 @@ from .tguploader import TgUploader
 from .reporter import rep
 
 btn_formatter = {
-    'Hdrip':'HDRip'
+    'Hdrip':'HDRip',
     '1080':'𝟭𝟬𝟴𝟬𝗽', 
     '720':'𝟳𝟮𝟬𝗽',
     '480':'𝟰𝟴𝟬𝗽'
