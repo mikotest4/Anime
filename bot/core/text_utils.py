@@ -11,21 +11,15 @@ from .func_utils import handle_logs
 from .reporter import rep
 
 CAPTION_FORMAT = """
-<b>㊂ <i>{title}</i></b>
-<b>╭┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅</b>
-<b>⊙</b> <i>Genres:</i> <i>{genres}</i>
-<b>⊙</b> <i>Status:</i> <i>RELEASING</i> 
-<b>⊙</b> <i>Source:</i> <i>Subsplease</i>
-<b>⊙</b> <i>Episode:</i> <i>{ep_no}</i>
-<b>⊙</b> <i>Audio: Japanese</i>
-<b>⊙</b> <i>Subtitle: English</i>
-<b>╰┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅</b>
-╭┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅
-⌬  <b><i>Powered By</i></b> ~ </i></b><b><i>{cred}</i></b>
-╰┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅
+<b>{title}</b>
+<b>────────────────────────────</b>
+<b>➤ Season - {season}</b>
+<b>➤ Episode - {ep_no}</b> 
+<b>➤ Quality: Multi [Sub]</b>
+<b>────────────────────────────</b>
 """
 
-GENRES_EMOJI = {"Action": "👊", "Adventure": choice(['🪂', '🧗‍♀']), "Comedy": "🤣", "Drama": " 🎭", "Ecchi": choice(['💋', '🥵']), "Fantasy": choice(['🧞', '🧞‍♂', '🧞‍♀','🌗']), "Hentai": "🔞", "Horror": "☠", "Mahou Shoujo": "☯", "Mecha": "🤖", "Music": "🎸", "Mystery": "🔮", "Psychological": "♟", "Romance": "💞", "Sci-Fi": "🛸", "Slice of Life": choice(['☘','🍁']), "Sports": "⚽️", "Supernatural": "🫧", "Thriller": choice(['🥶', '🔪','🤯'])}
+GENRES_EMOJI = {"Action": "👊", "Adventure": choice(['🪂', '🧗‍♀']), "Comedy": "🤣", "Drama": " 🎭", "Ecchi": choice(['💋', '🥵']), "Fantasy": choice(['🧞', '🧞‍♂', '🧞‍♀','🌗']), "Hentai": "🔞", "Horror": "☠", "Mahou Shoujo": "☯", "Mecha": "🤖", "Music": "🎸", "Mystery": "🔮", "Psychological": "♟", "Romance": "💞", "Sci-Fi": "🛸", "Slice of Life": choice(['☘','🍁']), "Sports": "⚽️", "Supernatural": "🫧", "Thriller": choice(['⚡', '🗲']), "School": "🏫", "Historical": "🏛", "Military": "⚔", "Demons": "👹", "Vampire": "🧛", "Game": "🎮", "Martial Arts": "🥋", "Super Power": "💥", "Magic": "✨", "Shounen": "👦", "Seinen": "🧑", "Shoujo": "👧", "Josei": "👩"}
 
 ANIME_GRAPHQL_QUERY = """
 query ($id: Int, $search: String, $seasonYear: Int) {
@@ -206,22 +200,24 @@ class TextEditor:
 
     @handle_logs
     async def get_caption(self):
-        sd = self.adata.get('startDate', {})
-        startdate = f"{month_name[sd['month']]} {sd['day']}, {sd['year']}" if sd.get('day') and sd.get('year') else ""
-        ed = self.adata.get('endDate', {})
-        enddate = f"{month_name[ed['month']]} {ed['day']}, {ed['year']}" if ed.get('day') and ed.get('year') else ""
         titles = self.adata.get("title", {})
         
+        # Determine season number
+        season_number = "01"  # Default season
+        if self.pdata.get('anime_season'):
+            season_data = self.pdata.get('anime_season')
+            if isinstance(season_data, list):
+                season_number = str(season_data[-1]).zfill(2)
+            else:
+                season_number = str(season_data).zfill(2)
+        
+        # Get episode number
+        episode_number = self.pdata.get("episode_number", "01")
+        if isinstance(episode_number, (int, str)):
+            episode_number = str(episode_number).zfill(2)
+        
         return CAPTION_FORMAT.format(
-                title=titles.get('english') or titles.get('romaji') or title.get('native'),
-                form=self.adata.get("format") or "N/A",
-                genres=", ".join(f"{GENRES_EMOJI[x]} #{x.replace(' ', '_').replace('-', '_')}" for x in (self.adata.get('genres') or [])),
-                avg_score=f"{sc}%" if (sc := self.adata.get('averageScore')) else "N/A",
-                status=self.adata.get("status") or "N/A",
-                start_date=startdate or "N/A",
-                end_date=enddate or "N/A",
-                t_eps=self.adata.get("episodes") or "N/A",
-                plot= (desc if (desc := self.adata.get("description") or "N/A") and len(desc) < 200 else desc[:200] + "..."),
-                ep_no=self.pdata.get("episode_number"),
-                cred=Var.BRAND_UNAME,
-            )
+            title=titles.get('english') or titles.get('romaji') or titles.get('native') or "Unknown Anime",
+            season=season_number,
+            ep_no=episode_number
+        )
