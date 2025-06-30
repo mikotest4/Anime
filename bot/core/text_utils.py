@@ -15,7 +15,7 @@ CAPTION_FORMAT = """
 <b>────────────────────────────</b>
 <b>➤ Season - {season}</b>
 <b>➤ Episode - {ep_no}</b> 
-<b>➤ Quality: Multi [{quality_type}]</b>
+<b>➤ Quality: Multi [Sub]</b>
 <b>────────────────────────────</b>
 """
 
