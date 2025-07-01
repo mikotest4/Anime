@@ -13,10 +13,8 @@ from .func_utils import mediainfo, convertBytes, convertTime, sendMessage, editM
 from .reporter import rep
 
 ffargs = {
-    'Hdrip': Var.FFCODE_Hdrip,
     '1080': Var.FFCODE_1080,
     '720': Var.FFCODE_720,
-    '480': Var.FFCODE_480,
 }
 
 class FFEncoder:
